@@ -1,98 +1,104 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { StyleSheet, View, useColorScheme } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { SportCard } from '@/components/sport-card';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Spacing, Typography } from '@/constants/theme';
+import { SportType } from '@/types/sport';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const colorScheme = useColorScheme();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+  const handleSportPress = (sport: SportType) => {
+    // Navigate to sport-specific screen
+    router.push(`/(tabs)/${sport}`);
+  };
+
+  const gradientColors = colorScheme === 'dark'
+    ? ['#151718', '#1a1d1f', '#151718'] as const
+    : ['#f8f9fa', '#ffffff', '#f8f9fa'] as const;
+
+  return (
+    <LinearGradient
+      colors={gradientColors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      <View style={styles.header}>
+        <Image
+          source={require('@/assets/images/logo.png')}
+          style={styles.logo}
+          contentFit="contain"
+        />
+        <ThemedText style={styles.title}>Sports Predictions</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Choose your sport and start predicting
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+
+      <View style={styles.gridContainer}>
+        <View style={styles.row}>
+          <SportCard
+            sport={SportType.FOOTBALL}
+            onPress={() => handleSportPress(SportType.FOOTBALL)}
+          />
+          <SportCard
+            sport={SportType.BASKETBALL}
+            onPress={() => handleSportPress(SportType.BASKETBALL)}
+          />
+        </View>
+        <View style={styles.row}>
+          <SportCard
+            sport={SportType.TENNIS}
+            onPress={() => handleSportPress(SportType.TENNIS)}
+          />
+          <SportCard
+            sport={SportType.ICE_HOCKEY}
+            onPress={() => handleSportPress(SportType.ICE_HOCKEY)}
+          />
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    paddingTop: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
+  },
+  header: {
     alignItems: 'center',
-    gap: 8,
+    marginBottom: Spacing.xl,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: Spacing.md,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    ...Typography.h1,
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  subtitle: {
+    ...Typography.body,
+    opacity: 0.7,
+    textAlign: 'center',
+  },
+  gridContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: Spacing.lg,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.lg,
   },
 });
