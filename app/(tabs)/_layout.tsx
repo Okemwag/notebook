@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SPORT_CONFIGS } from '@/constants/sports';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -17,12 +16,31 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
+        tabBarIconStyle: {
+          marginTop: 2,
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons 
+              name={focused ? 'home' : 'home-outline'} 
+              size={28} 
+              color={color} 
+            />
+          ),
+          tabBarAccessibilityLabel: 'Home tab',
         }}
       />
       <Tabs.Screen
@@ -30,13 +48,14 @@ export default function TabLayout() {
         options={{
           title: 'Football',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol 
+            <Ionicons 
+              name={focused ? 'football' : 'football-outline'} 
               size={28} 
-              name={SPORT_CONFIGS[SportType.FOOTBALL].icon} 
               color={focused ? SPORT_CONFIGS[SportType.FOOTBALL].color : color} 
             />
           ),
           tabBarActiveTintColor: SPORT_CONFIGS[SportType.FOOTBALL].color,
+          tabBarAccessibilityLabel: 'Football matches tab',
         }}
       />
       <Tabs.Screen
@@ -44,13 +63,14 @@ export default function TabLayout() {
         options={{
           title: 'Basketball',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol 
+            <Ionicons 
+              name={focused ? 'basketball' : 'basketball-outline'} 
               size={28} 
-              name={SPORT_CONFIGS[SportType.BASKETBALL].icon} 
               color={focused ? SPORT_CONFIGS[SportType.BASKETBALL].color : color} 
             />
           ),
           tabBarActiveTintColor: SPORT_CONFIGS[SportType.BASKETBALL].color,
+          tabBarAccessibilityLabel: 'Basketball matches tab',
         }}
       />
       <Tabs.Screen
@@ -58,13 +78,14 @@ export default function TabLayout() {
         options={{
           title: 'Tennis',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol 
+            <Ionicons 
+              name={focused ? 'tennisball' : 'tennisball-outline'} 
               size={28} 
-              name={SPORT_CONFIGS[SportType.TENNIS].icon} 
               color={focused ? SPORT_CONFIGS[SportType.TENNIS].color : color} 
             />
           ),
           tabBarActiveTintColor: SPORT_CONFIGS[SportType.TENNIS].color,
+          tabBarAccessibilityLabel: 'Tennis matches tab',
         }}
       />
       <Tabs.Screen
@@ -72,13 +93,14 @@ export default function TabLayout() {
         options={{
           title: 'Ice Hockey',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol 
+            <Ionicons 
+              name={focused ? 'snow' : 'snow-outline'} 
               size={28} 
-              name={SPORT_CONFIGS[SportType.ICE_HOCKEY].icon} 
               color={focused ? SPORT_CONFIGS[SportType.ICE_HOCKEY].color : color} 
             />
           ),
           tabBarActiveTintColor: SPORT_CONFIGS[SportType.ICE_HOCKEY].color,
+          tabBarAccessibilityLabel: 'Ice Hockey matches tab',
         }}
       />
       <Tabs.Screen

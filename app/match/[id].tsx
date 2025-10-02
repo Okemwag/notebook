@@ -1,3 +1,4 @@
+import { ErrorState } from '@/components/error-state';
 import { LeagueBadge } from '@/components/league-badge';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { PredictionSelector } from '@/components/prediction-selector';
@@ -5,9 +6,10 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSportTheme } from '@/hooks/use-sport-theme';
 import { matchService } from '@/services/match-service';
-import { PredictionError, predictionService } from '@/services/prediction-service';
+import { predictionService } from '@/services/prediction-service';
 import { Match } from '@/types/match';
 import { Prediction, PredictionOption } from '@/types/prediction';
+import { SportType } from '@/types/sport';
 import { formatMatchDateTime } from '@/utils/date-utils';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +23,9 @@ import {
     Text,
     View,
 } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+
+const AnimatedView = Animated.View;
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +37,9 @@ export default function MatchDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const sportTheme = match ? useSportTheme(match.sport) : null;
+  // Use a default sport type for the hook, then override with actual sport theme when match loads
+  const defaultSportTheme = useSportTheme(match?.sport || SportType.FOOTBALL);
+  const sportTheme = match ? defaultSportTheme : null;
 
   useEffect(() => {
     loadMatchData();
@@ -59,9 +66,10 @@ export default function MatchDetailScreen() {
       setPrediction(existingPrediction);
 
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading match data:', err);
-      setError('Failed to load match details');
+      const errorMessage = err?.userMessage || err?.message || 'Failed to load match details';
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -89,12 +97,9 @@ export default function MatchDetailScreen() {
         );
         setPrediction(newPrediction);
       }
-    } catch (err) {
-      if (err instanceof PredictionError) {
-        Alert.alert('Prediction Error', err.message);
-      } else {
-        Alert.alert('Error', 'Failed to save prediction. Please try again.');
-      }
+    } catch (err: any) {
+      const errorMessage = err?.userMessage || err?.message || 'Failed to save prediction. Please try again.';
+      Alert.alert('Prediction Error', errorMessage);
       console.error('Error saving prediction:', err);
     }
   };
@@ -123,22 +128,17 @@ export default function MatchDetailScreen() {
 
   if (error || !match) {
     return (
-      <View style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Stack.Screen
           options={{
             title: 'Match Details',
             headerShown: true,
           }}
         />
-        <Text style={[styles.errorText, { color: colors.text }]}>
-          {error || 'Match not found'}
-        </Text>
-        <Pressable
-          onPress={handleBackPress}
-          style={[styles.backButton, { backgroundColor: colors.tint }]}
-        >
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </Pressable>
+        <ErrorState
+          message={error || 'Match not found'}
+          onRetry={loadMatchData}
+        />
       </View>
     );
   }
@@ -166,16 +166,24 @@ export default function MatchDetailScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        accessible={false}
       >
         {/* Match Header with Gradient */}
         {sportTheme && (
-          <LinearGradient
-            colors={sportTheme.colors.gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.headerGradient}
-          >
-            <View style={styles.matchHeader}>
+          <Animated.View entering={FadeIn.duration(400)}>
+            <LinearGradient
+              colors={sportTheme.colors.gradient as readonly [string, string, ...string[]]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.headerGradient}
+              accessible={false}
+            >
+            <View 
+              style={styles.matchHeader}
+              accessible={true}
+              accessibilityRole="header"
+              accessibilityLabel={`Match details: ${match.homeTeam.name} versus ${match.awayTeam.name}, ${match.league.name}, ${match.league.country}, ${formatMatchDateTime(match.dateTime)}${match.venue ? `, at ${match.venue}` : ''}, status: ${match.status}`}
+            >
               {/* League Badge */}
               <View style={styles.leagueBadgeContainer}>
                 <LeagueBadge
@@ -186,28 +194,60 @@ export default function MatchDetailScreen() {
               </View>
 
               {/* Teams */}
-              <View style={styles.teamsContainer}>
-                <View style={styles.teamSection}>
-                  <Text style={styles.teamName} numberOfLines={2}>
+              <View style={styles.teamsContainer} accessible={false}>
+                <View style={styles.teamSection} accessible={false}>
+                  <Text 
+                    style={styles.teamName} 
+                    numberOfLines={2}
+                    accessibilityElementsHidden={true}
+                    importantForAccessibility="no"
+                  >
                     {match.homeTeam.name}
                   </Text>
-                  <Text style={styles.teamLabel}>Home</Text>
+                  <Text 
+                    style={styles.teamLabel}
+                    accessibilityElementsHidden={true}
+                    importantForAccessibility="no"
+                  >
+                    Home
+                  </Text>
                 </View>
 
-                <View style={styles.vsContainer}>
-                  <Text style={styles.vsText}>VS</Text>
+                <View style={styles.vsContainer} accessible={false}>
+                  <Text 
+                    style={styles.vsText}
+                    accessibilityElementsHidden={true}
+                    importantForAccessibility="no"
+                  >
+                    VS
+                  </Text>
                 </View>
 
-                <View style={styles.teamSection}>
-                  <Text style={styles.teamName} numberOfLines={2}>
+                <View style={styles.teamSection} accessible={false}>
+                  <Text 
+                    style={styles.teamName} 
+                    numberOfLines={2}
+                    accessibilityElementsHidden={true}
+                    importantForAccessibility="no"
+                  >
                     {match.awayTeam.name}
                   </Text>
-                  <Text style={styles.teamLabel}>Away</Text>
+                  <Text 
+                    style={styles.teamLabel}
+                    accessibilityElementsHidden={true}
+                    importantForAccessibility="no"
+                  >
+                    Away
+                  </Text>
                 </View>
               </View>
 
               {/* Date and Time */}
-              <View style={styles.dateTimeContainer}>
+              <View 
+                style={styles.dateTimeContainer}
+                accessibilityElementsHidden={true}
+                importantForAccessibility="no"
+              >
                 <View style={styles.dateTimeRow}>
                   <Ionicons name="time-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.dateTimeText}>{formatMatchDateTime(match.dateTime)}</Text>
@@ -216,39 +256,57 @@ export default function MatchDetailScreen() {
 
               {/* Venue */}
               {match.venue && (
-                <View style={styles.venueContainer}>
+                <View 
+                  style={styles.venueContainer}
+                  accessibilityElementsHidden={true}
+                  importantForAccessibility="no"
+                >
                   <Ionicons name="location-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.venueText}>{match.venue}</Text>
                 </View>
               )}
 
               {/* Match Status */}
-              <View style={[styles.statusBadge, getStatusBadgeStyle(match.status)]}>
+              <View 
+                style={[styles.statusBadge, getStatusBadgeStyle(match.status)]}
+                accessibilityElementsHidden={true}
+                importantForAccessibility="no"
+              >
                 <Text style={styles.statusText}>{match.status.toUpperCase()}</Text>
               </View>
             </View>
-          </LinearGradient>
+            </LinearGradient>
+          </Animated.View>
         )}
 
         {/* Prediction Section */}
-        <View style={[styles.predictionSection, { backgroundColor: colors.card }]}>
+        <AnimatedView 
+          style={[styles.predictionSection, { backgroundColor: colors.card }]}
+          entering={FadeInDown.delay(200).duration(400).springify()}
+        >
           <PredictionSelector
             match={match}
             currentPrediction={prediction || undefined}
             onPredictionChange={handlePredictionChange}
           />
-        </View>
+        </AnimatedView>
 
         {/* Prediction Info */}
         {prediction && (
-          <View style={[styles.predictionInfo, { backgroundColor: colors.card }]}>
+          <AnimatedView 
+            style={[styles.predictionInfo, { backgroundColor: colors.card }]}
+            entering={FadeInDown.delay(300).duration(400).springify()}
+            accessible={true}
+            accessibilityRole="text"
+            accessibilityLabel={`Your prediction was made on ${formatMatchDateTime(prediction.timestamp)}`}
+          >
             <Text style={[styles.predictionInfoTitle, { color: colors.text }]}>
               Your Prediction
             </Text>
             <Text style={[styles.predictionInfoText, { color: colors.text }]}>
               Made {formatMatchDateTime(prediction.timestamp)}
             </Text>
-          </View>
+          </AnimatedView>
         )}
       </ScrollView>
     </View>
@@ -399,19 +457,5 @@ const styles = StyleSheet.create({
   predictionInfoText: {
     ...Typography.caption,
     opacity: 0.7,
-  },
-  errorText: {
-    ...Typography.h3,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-  },
-  backButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 24,
-  },
-  backButtonText: {
-    ...Typography.bodyBold,
-    color: '#FFFFFF',
   },
 });

@@ -5,7 +5,10 @@ export interface SportConfig {
   name: string;
   icon: string;
   color: string;
-  gradientColors: [string, string];
+  gradientColors: {
+    light: [string, string];
+    dark: [string, string];
+  };
   supportsDraw: boolean;
 }
 
@@ -15,7 +18,10 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     name: 'Football',
     icon: 'soccerball',
     color: '#00A86B',
-    gradientColors: ['#00A86B', '#00C853'],
+    gradientColors: {
+      light: ['#00A86B', '#00C853'],
+      dark: ['#008F5A', '#00A86B'],
+    },
     supportsDraw: true,
   },
   [SportType.BASKETBALL]: {
@@ -23,7 +29,10 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     name: 'Basketball',
     icon: 'basketball',
     color: '#FF6B35',
-    gradientColors: ['#FF6B35', '#FF8C42'],
+    gradientColors: {
+      light: ['#FF6B35', '#FF8C42'],
+      dark: ['#E65A2E', '#FF6B35'],
+    },
     supportsDraw: false,
   },
   [SportType.TENNIS]: {
@@ -31,7 +40,10 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     name: 'Tennis',
     icon: 'tennisball',
     color: '#FFD700',
-    gradientColors: ['#FFD700', '#FFA500'],
+    gradientColors: {
+      light: ['#FFD700', '#FFA500'],
+      dark: ['#D4AF37', '#FFD700'],
+    },
     supportsDraw: false,
   },
   [SportType.ICE_HOCKEY]: {
@@ -39,7 +51,10 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     name: 'Ice Hockey',
     icon: 'hockey.puck',
     color: '#4A90E2',
-    gradientColors: ['#4A90E2', '#5CA8FF'],
+    gradientColors: {
+      light: ['#4A90E2', '#5CA8FF'],
+      dark: ['#3A7BC8', '#4A90E2'],
+    },
     supportsDraw: true,
   },
 };

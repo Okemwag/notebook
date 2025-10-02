@@ -140,6 +140,8 @@ export function PredictionSelector({
                   selected: isSelected,
                   disabled: isMatchDisabled,
                 }}
+                accessibilityHint={isMatchDisabled ? undefined : `Double tap to predict ${label} will win`}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text
                   style={[
@@ -208,7 +210,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionButton: {
-    minHeight: 48,
+    minHeight: 48, // Meets 44x44 minimum touch target
+    minWidth: 48,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 24,

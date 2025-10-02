@@ -2,6 +2,21 @@ import { mockMatches } from '@/constants/mock-data';
 import { Match, MatchStatus } from '@/types/match';
 import { SportType } from '@/types/sport';
 
+/**
+ * Custom error class for match service operations
+ */
+export class MatchServiceError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public userMessage: string,
+    public originalError?: unknown
+  ) {
+    super(message);
+    this.name = 'MatchServiceError';
+  }
+}
+
 interface CacheEntry {
   data: Match[];
   timestamp: number;
@@ -15,76 +30,115 @@ class MatchService {
    * Get all matches for a specific sport
    * @param sport - The sport type to filter by
    * @returns Promise resolving to array of matches for the specified sport
+   * @throws MatchServiceError if operation fails
    */
   async getMatchesBySport(sport: SportType): Promise<Match[]> {
-    const cacheKey = `sport_${sport}`;
-    
-    // Check cache first
-    const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      return cached;
+    try {
+      const cacheKey = `sport_${sport}`;
+      
+      // Check cache first
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Simulate potential network delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Filter matches by sport
+      const matches = mockMatches
+        .filter((match) => match.sport === sport)
+        .map(this.parseMatchDates);
+
+      // Store in cache
+      this.setCache(cacheKey, matches);
+
+      return matches;
+    } catch (error) {
+      throw new MatchServiceError(
+        `Failed to fetch matches for ${sport}`,
+        'FETCH_MATCHES_ERROR',
+        'Unable to load matches. Please check your connection and try again.',
+        error
+      );
     }
-
-    // Filter matches by sport
-    const matches = mockMatches
-      .filter((match) => match.sport === sport)
-      .map(this.parseMatchDates);
-
-    // Store in cache
-    this.setCache(cacheKey, matches);
-
-    return matches;
   }
 
   /**
    * Get a single match by ID
    * @param id - The match ID
    * @returns Promise resolving to the match or null if not found
+   * @throws MatchServiceError if operation fails
    */
   async getMatchById(id: string): Promise<Match | null> {
-    const match = mockMatches.find((match) => match.id === id);
-    
-    if (!match) {
-      return null;
-    }
+    try {
+      // Simulate potential network delay
+      await new Promise(resolve => setTimeout(resolve, 50));
 
-    return this.parseMatchDates(match);
+      const match = mockMatches.find((match) => match.id === id);
+      
+      if (!match) {
+        return null;
+      }
+
+      return this.parseMatchDates(match);
+    } catch (error) {
+      throw new MatchServiceError(
+        `Failed to fetch match with ID ${id}`,
+        'FETCH_MATCH_ERROR',
+        'Unable to load match details. Please try again.',
+        error
+      );
+    }
   }
 
   /**
    * Get upcoming matches across all sports, sorted by date
    * @param limit - Optional limit on number of matches to return
    * @returns Promise resolving to array of upcoming matches sorted by date
+   * @throws MatchServiceError if operation fails
    */
   async getUpcomingMatches(limit?: number): Promise<Match[]> {
-    const cacheKey = `upcoming_${limit || 'all'}`;
-    
-    // Check cache first
-    const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      return cached;
+    try {
+      const cacheKey = `upcoming_${limit || 'all'}`;
+      
+      // Check cache first
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Simulate potential network delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const now = new Date();
+
+      // Filter for upcoming matches and sort by date
+      let matches = mockMatches
+        .filter((match) => {
+          const matchDate = new Date(match.dateTime);
+          return match.status === MatchStatus.UPCOMING && matchDate > now;
+        })
+        .map(this.parseMatchDates)
+        .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+
+      // Apply limit if specified
+      if (limit && limit > 0) {
+        matches = matches.slice(0, limit);
+      }
+
+      // Store in cache
+      this.setCache(cacheKey, matches);
+
+      return matches;
+    } catch (error) {
+      throw new MatchServiceError(
+        'Failed to fetch upcoming matches',
+        'FETCH_UPCOMING_ERROR',
+        'Unable to load upcoming matches. Please try again.',
+        error
+      );
     }
-
-    const now = new Date();
-
-    // Filter for upcoming matches and sort by date
-    let matches = mockMatches
-      .filter((match) => {
-        const matchDate = new Date(match.dateTime);
-        return match.status === MatchStatus.UPCOMING && matchDate > now;
-      })
-      .map(this.parseMatchDates)
-      .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
-
-    // Apply limit if specified
-    if (limit && limit > 0) {
-      matches = matches.slice(0, limit);
-    }
-
-    // Store in cache
-    this.setCache(cacheKey, matches);
-
-    return matches;
   }
 
   /**

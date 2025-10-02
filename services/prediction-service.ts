@@ -9,11 +9,29 @@ export class PredictionError extends Error {
   constructor(
     message: string,
     public code: string,
+    public userMessage: string,
     public originalError?: unknown
   ) {
     super(message);
     this.name = 'PredictionError';
   }
+}
+
+/**
+ * Get user-friendly error message based on error code
+ */
+function getUserFriendlyMessage(code: string): string {
+  const messages: Record<string, string> = {
+    MATCH_ALREADY_STARTED: 'This match has already started. Predictions are closed.',
+    MATCH_ALREADY_FINISHED: 'This match has already finished. Predictions are closed.',
+    MATCH_POSTPONED: 'This match has been postponed. Predictions are not available.',
+    PREDICTION_ALREADY_EXISTS: 'You have already made a prediction for this match.',
+    PREDICTION_NOT_FOUND: 'Prediction not found.',
+    LOAD_PREDICTIONS_ERROR: 'Unable to load your predictions. Please try again.',
+    SAVE_PREDICTIONS_ERROR: 'Unable to save your prediction. Please check your storage and try again.',
+  };
+  
+  return messages[code] || 'An unexpected error occurred. Please try again.';
 }
 
 /**
@@ -51,9 +69,11 @@ export class PredictionService {
       }));
     } catch (error) {
       if (error instanceof StorageError) {
+        const code = 'LOAD_PREDICTIONS_ERROR';
         throw new PredictionError(
           'Failed to load predictions from storage',
-          'LOAD_PREDICTIONS_ERROR',
+          code,
+          getUserFriendlyMessage(code),
           error
         );
       }
@@ -70,9 +90,11 @@ export class PredictionService {
       await storageService.setItem(PREDICTIONS_STORAGE_KEY, predictions);
     } catch (error) {
       if (error instanceof StorageError) {
+        const code = 'SAVE_PREDICTIONS_ERROR';
         throw new PredictionError(
           'Failed to save predictions to storage',
-          'SAVE_PREDICTIONS_ERROR',
+          code,
+          getUserFriendlyMessage(code),
           error
         );
       }
@@ -87,23 +109,29 @@ export class PredictionService {
    */
   private validateMatchStatus(match: Match): void {
     if (match.status === MatchStatus.LIVE) {
+      const code = 'MATCH_ALREADY_STARTED';
       throw new PredictionError(
         'Cannot make predictions on live matches',
-        'MATCH_ALREADY_STARTED'
+        code,
+        getUserFriendlyMessage(code)
       );
     }
     
     if (match.status === MatchStatus.FINISHED) {
+      const code = 'MATCH_ALREADY_FINISHED';
       throw new PredictionError(
         'Cannot make predictions on finished matches',
-        'MATCH_ALREADY_FINISHED'
+        code,
+        getUserFriendlyMessage(code)
       );
     }
     
     if (match.status === MatchStatus.POSTPONED) {
+      const code = 'MATCH_POSTPONED';
       throw new PredictionError(
         'Cannot make predictions on postponed matches',
-        'MATCH_POSTPONED'
+        code,
+        getUserFriendlyMessage(code)
       );
     }
   }
@@ -131,9 +159,11 @@ export class PredictionService {
     );
 
     if (existingPrediction) {
+      const code = 'PREDICTION_ALREADY_EXISTS';
       throw new PredictionError(
         'Prediction already exists for this match. Use updatePrediction to modify it.',
-        'PREDICTION_ALREADY_EXISTS'
+        code,
+        getUserFriendlyMessage(code)
       );
     }
 
@@ -200,9 +230,11 @@ export class PredictionService {
     const predictionIndex = predictions.findIndex(pred => pred.id === id);
 
     if (predictionIndex === -1) {
+      const code = 'PREDICTION_NOT_FOUND';
       throw new PredictionError(
         'Prediction not found',
-        'PREDICTION_NOT_FOUND'
+        code,
+        getUserFriendlyMessage(code)
       );
     }
 
@@ -232,9 +264,11 @@ export class PredictionService {
     const predictionIndex = predictions.findIndex(pred => pred.id === id);
 
     if (predictionIndex === -1) {
+      const code = 'PREDICTION_NOT_FOUND';
       throw new PredictionError(
         'Prediction not found',
-        'PREDICTION_NOT_FOUND'
+        code,
+        getUserFriendlyMessage(code)
       );
     }
 

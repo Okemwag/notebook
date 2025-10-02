@@ -2,31 +2,52 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Match, MatchStatus } from '@/types/match';
 import { Prediction } from '@/types/prediction';
-import React from 'react';
+import { format } from 'date-fns';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
+    FadeInDown,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
+    withTiming,
 } from 'react-native-reanimated';
 import { LeagueBadge } from './league-badge';
+
+// Helper functions for date formatting
+const formatMatchDate = (date: Date): string => {
+  return format(date, 'MMM dd');
+};
+
+const formatMatchTime = (date: Date): string => {
+  return format(date, 'HH:mm');
+};
 
 interface MatchCardProps {
   match: Match;
   prediction?: Prediction;
   onPress: () => void;
+  index?: number;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function MatchCard({ match, prediction, onPress }: MatchCardProps) {
+export function MatchCard({ match, prediction, onPress, index = 0 }: MatchCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, {
+      duration: 400,
+    });
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
+      opacity: opacity.value,
     };
   });
 
@@ -70,8 +91,26 @@ export function MatchCard({ match, prediction, onPress }: MatchCardProps) {
     }
   };
 
+  const getAccessibilityLabel = () => {
+    const statusText = match.status === MatchStatus.LIVE 
+      ? 'Live match' 
+      : match.status === MatchStatus.FINISHED 
+      ? 'Finished match' 
+      : match.status === MatchStatus.POSTPONED
+      ? 'Postponed match'
+      : `Match at ${formatMatchTime(match.dateTime)}`;
+    
+    const predictionText = prediction ? ', you have made a prediction' : '';
+    const scoreText = match.liveScore 
+      ? `, current score ${match.liveScore.home} to ${match.liveScore.away}` 
+      : '';
+    
+    return `${match.homeTeam.name} versus ${match.awayTeam.name}, ${match.league.name}, ${match.league.country}, ${formatMatchDate(match.dateTime)}, ${statusText}${scoreText}${predictionText}`;
+  };
+
   return (
     <AnimatedPressable
+      entering={FadeInDown.delay(index * 50).duration(400).springify()}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -84,8 +123,9 @@ export function MatchCard({ match, prediction, onPress }: MatchCardProps) {
         },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`Match: ${match.homeTeam.name} vs ${match.awayTeam.name}`}
-      accessibilityHint="Tap to view match details and make a prediction"
+      accessibilityLabel={getAccessibilityLabel()}
+      accessibilityHint="Double tap to view match details and make a prediction"
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       {/* Header with League Badge and Date */}
       <View style={styles.header}>

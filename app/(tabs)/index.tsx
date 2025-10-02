@@ -2,11 +2,14 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View, useColorScheme } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { SportCard } from '@/components/sport-card';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing, Typography } from '@/constants/theme';
 import { SportType } from '@/types/sport';
+
+const AnimatedView = Animated.createAnimatedComponent(View);
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -27,38 +30,55 @@ export default function HomeScreen() {
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.container}
+      accessible={false}
     >
-      <View style={styles.header}>
+      <AnimatedView 
+        style={styles.header} 
+        entering={FadeIn.duration(600)}
+        accessible={true}
+        accessibilityRole="header"
+        accessibilityLabel="Sports Predictions app. Choose your sport and start predicting"
+      >
         <Image
           source={require('@/assets/images/logo.png')}
           style={styles.logo}
           contentFit="contain"
+          accessible={true}
+          accessibilityLabel="Sports Predictions logo"
+          accessibilityRole="image"
         />
         <ThemedText style={styles.title}>Sports Predictions</ThemedText>
         <ThemedText style={styles.subtitle}>
           Choose your sport and start predicting
         </ThemedText>
-      </View>
+      </AnimatedView>
 
-      <View style={styles.gridContainer}>
-        <View style={styles.row}>
+      <View 
+        style={styles.gridContainer}
+        accessible={false}
+      >
+        <View style={styles.row} accessible={false}>
           <SportCard
             sport={SportType.FOOTBALL}
             onPress={() => handleSportPress(SportType.FOOTBALL)}
+            index={0}
           />
           <SportCard
             sport={SportType.BASKETBALL}
             onPress={() => handleSportPress(SportType.BASKETBALL)}
+            index={1}
           />
         </View>
-        <View style={styles.row}>
+        <View style={styles.row} accessible={false}>
           <SportCard
             sport={SportType.TENNIS}
             onPress={() => handleSportPress(SportType.TENNIS)}
+            index={2}
           />
           <SportCard
             sport={SportType.ICE_HOCKEY}
             onPress={() => handleSportPress(SportType.ICE_HOCKEY)}
+            index={3}
           />
         </View>
       </View>

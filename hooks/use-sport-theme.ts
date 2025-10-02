@@ -12,6 +12,7 @@ interface SportTheme {
     background: string;
     card: string;
     border: string;
+    success: string;
   };
   isDark: boolean;
 }
@@ -28,14 +29,18 @@ export function useSportTheme(sport: SportType): SportTheme {
   const theme = useMemo(() => {
     const config = SPORT_CONFIGS[sport];
 
+    // Get gradient colors based on color scheme
+    const gradient = isDark ? config.gradientColors.dark : config.gradientColors.light;
+
     // Adjust colors for dark mode
     const colors = {
       primary: config.color,
-      gradient: config.gradientColors as [string, string],
-      text: isDark ? '#FFFFFF' : '#000000',
-      background: isDark ? '#000000' : '#FFFFFF',
+      gradient: gradient as [string, string],
+      text: isDark ? '#ECEDEE' : '#11181C',
+      background: isDark ? '#151718' : '#fff',
       card: isDark ? '#1E1E1E' : '#FFFFFF',
       border: isDark ? '#2C2C2C' : '#E5E5E5',
+      success: isDark ? '#66BB6A' : '#4CAF50',
     };
 
     return {
@@ -60,13 +65,17 @@ export function useAllSportThemes(): SportTheme[] {
     return Object.values(SportType).map(sport => {
       const config = SPORT_CONFIGS[sport];
 
+      // Get gradient colors based on color scheme
+      const gradient = isDark ? config.gradientColors.dark : config.gradientColors.light;
+
       const colors = {
         primary: config.color,
-        gradient: config.gradientColors as [string, string],
-        text: isDark ? '#FFFFFF' : '#000000',
-        background: isDark ? '#000000' : '#FFFFFF',
+        gradient: gradient as [string, string],
+        text: isDark ? '#ECEDEE' : '#11181C',
+        background: isDark ? '#151718' : '#fff',
         card: isDark ? '#1E1E1E' : '#FFFFFF',
         border: isDark ? '#2C2C2C' : '#E5E5E5',
+        success: isDark ? '#66BB6A' : '#4CAF50',
       };
 
       return {
@@ -104,8 +113,8 @@ export function useAppTheme(): {
   const colors = useMemo(() => {
     if (isDark) {
       return {
-        text: '#FFFFFF',
-        background: '#000000',
+        text: '#ECEDEE',
+        background: '#151718',
         card: '#1E1E1E',
         cardBorder: '#2C2C2C',
         success: '#66BB6A',
@@ -117,8 +126,8 @@ export function useAppTheme(): {
     }
 
     return {
-      text: '#000000',
-      background: '#FFFFFF',
+      text: '#11181C',
+      background: '#fff',
       card: '#FFFFFF',
       cardBorder: '#E5E5E5',
       success: '#4CAF50',

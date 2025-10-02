@@ -69,19 +69,31 @@ export const Fonts = Platform.select({
 export const SportColors = {
   football: {
     primary: '#00A86B',
-    gradient: ['#00A86B', '#00C853'],
+    gradient: {
+      light: ['#00A86B', '#00C853'],
+      dark: ['#008F5A', '#00A86B'],
+    },
   },
   basketball: {
     primary: '#FF6B35',
-    gradient: ['#FF6B35', '#FF8C42'],
+    gradient: {
+      light: ['#FF6B35', '#FF8C42'],
+      dark: ['#E65A2E', '#FF6B35'],
+    },
   },
   tennis: {
     primary: '#FFD700',
-    gradient: ['#FFD700', '#FFA500'],
+    gradient: {
+      light: ['#FFD700', '#FFA500'],
+      dark: ['#D4AF37', '#FFD700'],
+    },
   },
   'ice-hockey': {
     primary: '#4A90E2',
-    gradient: ['#4A90E2', '#5CA8FF'],
+    gradient: {
+      light: ['#4A90E2', '#5CA8FF'],
+      dark: ['#3A7BC8', '#4A90E2'],
+    },
   },
 };
 

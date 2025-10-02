@@ -59,8 +59,19 @@ export function LeagueBadge({ league, country, size = 'medium' }: LeagueBadgePro
   const currentSize = sizeStyles[size];
 
   return (
-    <View style={[styles.container, currentSize.container, { backgroundColor: colors.cardBorder }]}>
-      <Text style={[currentSize.flag]}>{flag}</Text>
+    <View 
+      style={[styles.container, currentSize.container, { backgroundColor: colors.cardBorder }]}
+      accessible={true}
+      accessibilityRole="text"
+      accessibilityLabel={`${league}, ${country}`}
+    >
+      <Text 
+        style={[currentSize.flag]}
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no"
+      >
+        {flag}
+      </Text>
       <Text 
         style={[
           styles.text, 
@@ -69,6 +80,8 @@ export function LeagueBadge({ league, country, size = 'medium' }: LeagueBadgePro
         ]}
         numberOfLines={1}
         ellipsizeMode="tail"
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no"
       >
         {league}
       </Text>

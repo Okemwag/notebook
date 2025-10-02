@@ -49,9 +49,20 @@ export function LoadingSpinner({ sport, text, size = 'medium' }: LoadingSpinnerP
   });
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      accessible={true}
+      accessibilityRole="progressbar"
+      accessibilityLabel={text || 'Loading'}
+      accessibilityLiveRegion="polite"
+    >
       <Animated.View style={animatedStyle}>
-        <ActivityIndicator size={spinnerSize} color={spinnerColor} />
+        <ActivityIndicator 
+          size={spinnerSize} 
+          color={spinnerColor}
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no"
+        />
       </Animated.View>
       {text && (
         <ThemedText style={[styles.text, Typography.caption]}>

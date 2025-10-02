@@ -7,11 +7,30 @@ export class StorageError extends Error {
   constructor(
     message: string,
     public code: string,
+    public userMessage: string,
     public originalError?: unknown
   ) {
     super(message);
     this.name = 'StorageError';
   }
+}
+
+/**
+ * Get user-friendly error message based on error code
+ */
+function getUserFriendlyMessage(code: string): string {
+  const messages: Record<string, string> = {
+    STORAGE_SET_ERROR: 'Unable to save data. Please check your device storage.',
+    STORAGE_GET_ERROR: 'Unable to load data. Please try again.',
+    STORAGE_REMOVE_ERROR: 'Unable to remove data. Please try again.',
+    STORAGE_GET_KEYS_ERROR: 'Unable to access storage. Please try again.',
+    STORAGE_CLEAR_ERROR: 'Unable to clear storage. Please try again.',
+    STORAGE_MULTI_GET_ERROR: 'Unable to load multiple items. Please try again.',
+    STORAGE_MULTI_SET_ERROR: 'Unable to save multiple items. Please try again.',
+    STORAGE_MULTI_REMOVE_ERROR: 'Unable to remove multiple items. Please try again.',
+  };
+  
+  return messages[code] || 'A storage error occurred. Please try again.';
 }
 
 /**
@@ -30,9 +49,11 @@ export class StorageService {
       const jsonValue = JSON.stringify(value);
       await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
+      const code = 'STORAGE_SET_ERROR';
       throw new StorageError(
         `Failed to save item with key "${key}"`,
-        'STORAGE_SET_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -52,9 +73,11 @@ export class StorageService {
       }
       return JSON.parse(jsonValue) as T;
     } catch (error) {
+      const code = 'STORAGE_GET_ERROR';
       throw new StorageError(
         `Failed to retrieve item with key "${key}"`,
-        'STORAGE_GET_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -69,9 +92,11 @@ export class StorageService {
     try {
       await AsyncStorage.removeItem(key);
     } catch (error) {
+      const code = 'STORAGE_REMOVE_ERROR';
       throw new StorageError(
         `Failed to remove item with key "${key}"`,
-        'STORAGE_REMOVE_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -87,9 +112,11 @@ export class StorageService {
       const keys = await AsyncStorage.getAllKeys();
       return keys;
     } catch (error) {
+      const code = 'STORAGE_GET_KEYS_ERROR';
       throw new StorageError(
         'Failed to retrieve all keys',
-        'STORAGE_GET_KEYS_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -103,9 +130,11 @@ export class StorageService {
     try {
       await AsyncStorage.clear();
     } catch (error) {
+      const code = 'STORAGE_CLEAR_ERROR';
       throw new StorageError(
         'Failed to clear storage',
-        'STORAGE_CLEAR_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -121,9 +150,11 @@ export class StorageService {
     try {
       return await AsyncStorage.multiGet(keys);
     } catch (error) {
+      const code = 'STORAGE_MULTI_GET_ERROR';
       throw new StorageError(
         'Failed to retrieve multiple items',
-        'STORAGE_MULTI_GET_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -138,9 +169,11 @@ export class StorageService {
     try {
       await AsyncStorage.multiSet(keyValuePairs);
     } catch (error) {
+      const code = 'STORAGE_MULTI_SET_ERROR';
       throw new StorageError(
         'Failed to set multiple items',
-        'STORAGE_MULTI_SET_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }
@@ -155,9 +188,11 @@ export class StorageService {
     try {
       await AsyncStorage.multiRemove(keys);
     } catch (error) {
+      const code = 'STORAGE_MULTI_REMOVE_ERROR';
       throw new StorageError(
         'Failed to remove multiple items',
-        'STORAGE_MULTI_REMOVE_ERROR',
+        code,
+        getUserFriendlyMessage(code),
         error
       );
     }

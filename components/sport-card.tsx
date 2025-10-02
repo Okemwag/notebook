@@ -6,23 +6,30 @@ import { SymbolView } from 'expo-symbols';
 import React from 'react';
 import { Pressable, StyleSheet, useColorScheme } from 'react-native';
 import Animated, {
+    FadeInUp,
     useAnimatedStyle,
     useSharedValue,
-    withSpring,
+    withSpring
 } from 'react-native-reanimated';
 import { ThemedText } from './themed-text';
 
 interface SportCardProps {
   sport: SportType;
   onPress: () => void;
+  index?: number;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function SportCard({ sport, onPress }: SportCardProps) {
+export function SportCard({ sport, onPress, index = 0 }: SportCardProps) {
   const colorScheme = useColorScheme();
   const sportConfig = getSportConfig(sport);
   const scale = useSharedValue(1);
+
+  // Get gradient colors based on color scheme
+  const gradientColors = colorScheme === 'dark' 
+    ? sportConfig.gradientColors.dark 
+    : sportConfig.gradientColors.light;
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -46,16 +53,18 @@ export function SportCard({ sport, onPress }: SportCardProps) {
 
   return (
     <AnimatedPressable
+      entering={FadeInUp.delay(index * 100).duration(500).springify()}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[styles.container, animatedStyle]}
       accessibilityRole="button"
       accessibilityLabel={`View ${sportConfig.name} matches`}
-      accessibilityHint={`Opens the ${sportConfig.name} matches screen`}
+      accessibilityHint={`Double tap to open the ${sportConfig.name} matches screen`}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       <LinearGradient
-        colors={sportConfig.gradientColors}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}

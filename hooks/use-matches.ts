@@ -35,11 +35,12 @@ export function useMatches(sport: SportType): UseMatchesReturn {
         loading: false,
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.userMessage || error?.message || 'Failed to load matches';
       setState({
         matches: [],
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load matches',
+        error: errorMessage,
       });
     }
   }, [sport]);
@@ -81,11 +82,12 @@ export function useUpcomingMatches(limit?: number): UseMatchesReturn {
         loading: false,
         error: null,
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.userMessage || error?.message || 'Failed to load upcoming matches';
       setState({
         matches: [],
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load upcoming matches',
+        error: errorMessage,
       });
     }
   }, [limit]);
@@ -135,10 +137,11 @@ export function useMatch(matchId: string | null): {
       const fetchedMatch = await matchService.getMatchById(matchId);
       setMatch(fetchedMatch);
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.userMessage || error?.message || 'Failed to load match';
       setMatch(null);
       setLoading(false);
-      setError(error instanceof Error ? error.message : 'Failed to load match');
+      setError(errorMessage);
     }
   }, [matchId]);
 

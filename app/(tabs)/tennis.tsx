@@ -1,3 +1,5 @@
+import { EmptyState } from '@/components/empty-state';
+import { ErrorState } from '@/components/error-state';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { MatchCard } from '@/components/match-card';
 import { ThemedText } from '@/components/themed-text';
@@ -35,6 +37,20 @@ export default function TennisScreen() {
   const { predictions } = usePredictions();
   const [refreshing, setRefreshing] = useState(false);
 
+  const formatSectionDate = (date: Date): string => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (isSameDay(date, today)) {
+      return 'Today';
+    } else if (isSameDay(date, tomorrow)) {
+      return 'Tomorrow';
+    } else {
+      return format(date, 'EEEE, MMM dd');
+    }
+  };
+
   // Group matches by date
   const sections = useMemo(() => {
     if (!matches.length) return [];
@@ -54,20 +70,6 @@ export default function TennisScreen() {
     }));
   }, [matches]);
 
-  const formatSectionDate = (date: Date): string => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (isSameDay(date, today)) {
-      return 'Today';
-    } else if (isSameDay(date, tomorrow)) {
-      return 'Tomorrow';
-    } else {
-      return format(date, 'EEEE, MMM dd');
-    }
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
     await refresh();
@@ -83,16 +85,22 @@ export default function TennisScreen() {
   };
 
   const renderSectionHeader = ({ section }: { section: MatchSection }) => (
-    <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
+    <View 
+      style={[styles.sectionHeader, { backgroundColor: colors.background }]}
+      accessible={true}
+      accessibilityRole="header"
+      accessibilityLabel={`Matches for ${section.title}`}
+    >
       <ThemedText style={styles.sectionTitle}>{section.title}</ThemedText>
     </View>
   );
 
-  const renderMatch = ({ item }: { item: Match }) => (
+  const renderMatch = ({ item, index }: { item: Match; index: number }) => (
     <MatchCard
       match={item}
       prediction={getPredictionForMatch(item.id)}
       onPress={() => handleMatchPress(item.id)}
+      index={index}
     />
   );
 
@@ -100,32 +108,22 @@ export default function TennisScreen() {
     if (loading) return null;
 
     return (
-      <View style={styles.emptyContainer}>
-        <SymbolView
-          name={sportConfig.icon}
-          size={64}
-          tintColor={colors.icon}
-          style={styles.emptyIcon}
-        />
-        <ThemedText style={styles.emptyTitle}>No Matches Available</ThemedText>
-        <ThemedText style={styles.emptySubtitle}>
-          There are no upcoming tennis matches at the moment.
-        </ThemedText>
-        <ThemedText style={styles.emptySubtitle}>
-          Pull down to refresh.
-        </ThemedText>
-      </View>
+      <EmptyState
+        title="No Matches Available"
+        message="There are no upcoming tennis matches at the moment. Pull down to refresh."
+        icon={sportConfig.icon}
+        iconColor={sportConfig.color}
+        actionText="Refresh"
+        onAction={handleRefresh}
+      />
     );
   };
 
   const renderErrorState = () => (
-    <View style={styles.emptyContainer}>
-      <ThemedText style={styles.emptyTitle}>Oops!</ThemedText>
-      <ThemedText style={styles.emptySubtitle}>{error}</ThemedText>
-      <ThemedText style={styles.emptySubtitle}>
-        Pull down to try again.
-      </ThemedText>
-    </View>
+    <ErrorState
+      message={error || 'Unable to load matches'}
+      onRetry={handleRefresh}
+    />
   );
 
   if (loading && !refreshing) {
@@ -185,12 +183,19 @@ export default function TennisScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
+      <View 
+        style={styles.header}
+        accessible={true}
+        accessibilityRole="header"
+        accessibilityLabel={`${sportConfig.name} matches`}
+      >
         <SymbolView
           name={sportConfig.icon}
           size={32}
           tintColor={sportConfig.color}
           style={styles.headerIcon}
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no"
         />
         <ThemedText style={styles.headerTitle}>{sportConfig.name}</ThemedText>
       </View>
@@ -208,9 +213,15 @@ export default function TennisScreen() {
             onRefresh={handleRefresh}
             tintColor={sportConfig.color}
             colors={[sportConfig.color]}
+            accessibilityLabel="Pull to refresh matches"
           />
         }
         stickySectionHeadersEnabled={true}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        initialNumToRender={8}
+        accessible={false}
       />
     </ThemedView>
   );
@@ -253,27 +264,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxl,
-  },
-  emptyIcon: {
-    marginBottom: Spacing.lg,
-    opacity: 0.3,
-  },
-  emptyTitle: {
-    ...Typography.h3,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    ...Typography.body,
-    opacity: 0.6,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
   },
 });

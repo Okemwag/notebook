@@ -1,4 +1,5 @@
-import { Match, MatchStatus, SportType } from '@/types/match';
+import { Match, MatchStatus } from '@/types/match';
+import { SportType } from '@/types/sport';
 
 export const mockMatches: Match[] = [
   // Football matches
